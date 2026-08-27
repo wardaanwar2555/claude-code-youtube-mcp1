@@ -11,7 +11,7 @@ console.log(`
 ║     https://console.cloud.google.com/apis/credentials        ║
 ║                                                              ║
 ║  2. Set your API key:                                        ║
-║     export YOUTUBE_API_KEY=your_api_key_here                 ║
+║     export YOUTUBE_API_KEY=AIzaSyCedU0lBE60Rko4T82AL6004RZ1Xa0sTB8 ║
 ║                                                              ║
 ║  3. Add to Claude Code:                                      ║
 ║     claude mcp add youtube-mcp -- node /path/to/dist/index.js║
