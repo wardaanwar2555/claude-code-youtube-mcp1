@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import express from 'express';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema
@@ -798,10 +799,49 @@ async function main() {
 
     // ── Start Server ────────────────────────────────────────────────
 
-    const transport = new StdioServerTransport();
+     const app = express();
+
+app.use(express.json());
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'youtube-mcp-server'
+  });
+});
+
+app.post('/mcp', async (req, res) => {
+  try {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true
+    });
+
+    res.on('close', () => {
+      transport.close();
+    });
+
     await server.connect(transport);
 
-    console.error('YouTube MCP Server v1.0.0 running');
+    await transport.handleRequest(req, res, req.body);
+  } catch (error) {
+    console.error('MCP request error:', error);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Internal MCP server error'
+      });
+    }
+  }
+});
+
+const port = Number(process.env.PORT || 3000);
+
+app.listen(port, '0.0.0.0', () => {
+  console.error(`YouTube MCP Server running on port ${port}`);
+  console.error(`Health endpoint: /health`);
+  console.error(`MCP endpoint: /mcp`);
+});
 
     process.on('SIGINT', async () => {
       console.error('Shutting down YouTube MCP Server...');
